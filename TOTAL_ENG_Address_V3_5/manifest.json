@@ -1,0 +1,15 @@
+{
+  "name": "TOTAL ENG 현장주소",
+  "short_name": "현장주소",
+  "description": "TOTAL ENG AS 및 공사 현장 주소 검색 앱",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#003D8E",
+  "theme_color": "#003D8E",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
