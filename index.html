@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="TOTAL ENG AS 및 공사 현장 주소 검색 앱" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <meta name="theme-color" content="#003D8E" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="현장주소" />
+
+  <title>TOTAL ENG 현장주소</title>
+
+  <link rel="manifest" href="./manifest.json?v=3.7.0" />
+  <link rel="stylesheet" href="./style.css?v=3.7.0" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./img/icon-180.png" />
+</head>
+<body data-app-version="V3.7.0">
+  <div id="kakaoGuide" class="kakao-guide" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="kakaoGuideTitle">
+    <div class="kakao-guide-card">
+      <img class="kakao-guide-logo" src="./img/logo.png" alt="TOTAL ENG" />
+      <span class="kakao-guide-label">휴대폰 앱 설치 안내</span>
+      <h2 id="kakaoGuideTitle">카카오톡 안에서는<br />앱 설치가 보이지 않아요</h2>
+      <p id="kakaoGuideMessage" class="kakao-guide-message">아래 버튼을 눌러 Chrome에서 열어 주세요.</p>
+
+      <ol id="kakaoAndroidSteps" class="kakao-guide-steps">
+        <li><strong>Chrome으로 열기</strong> 버튼을 누르세요.</li>
+        <li>Chrome 화면에서 <strong>설치</strong>를 누르세요.</li>
+        <li>휴대폰 바탕화면의 <strong>현장주소</strong>를 누르면 됩니다.</li>
+      </ol>
+
+      <ol id="kakaoIosSteps" class="kakao-guide-steps" hidden>
+        <li>카카오톡 오른쪽 위의 <strong>점 3개(⋯)</strong>를 누르세요.</li>
+        <li><strong>Safari로 열기</strong>를 누르세요.</li>
+        <li>Safari의 <strong>공유 → 홈 화면에 추가</strong>를 누르세요.</li>
+      </ol>
+
+      <button id="openChromeBtn" class="kakao-primary-btn" type="button">Chrome으로 열기</button>
+      <p id="kakaoAndroidFallback" class="kakao-guide-note">버튼이 안 되면 오른쪽 위 <strong>점 3개 → 다른 브라우저로 열기</strong>를 누르세요.</p>
+      <button id="copyAppLinkBtn" class="kakao-secondary-btn" type="button">링크 복사하기</button>
+      <button id="continueInKakaoBtn" class="kakao-text-btn" type="button">설치하지 않고 일단 사용하기</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const userAgent = navigator.userAgent || '';
+      const params = new URLSearchParams(window.location.search);
+      const forcedByLink = params.get('from') === 'kakao' || params.get('kakao') === '1';
+      const kakaoUserAgent = /KAKAOTALK|KakaoTalk/i.test(userAgent);
+      const isKakaoContext = kakaoUserAgent || forcedByLink;
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+        || navigator.standalone === true;
+
+      window.__TEA_KAKAO_CONTEXT__ = isKakaoContext;
+
+      function cleanAppUrl() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('from');
+        url.searchParams.delete('kakao');
+        return url.toString();
+      }
+
+      function isIos() {
+        const ipadDesktopMode = navigator.platform === 'MacIntel'
+          && navigator.maxTouchPoints > 1;
+        return /iphone|ipad|ipod/i.test(userAgent) || ipadDesktopMode;
+      }
+
+      function isAndroid() {
+        return /android/i.test(userAgent);
+      }
+
+      function showGuide() {
+        const guide = document.getElementById('kakaoGuide');
+        if (!guide || isStandalone) return;
+
+        const ios = isIos();
+        const androidSteps = document.getElementById('kakaoAndroidSteps');
+        const iosSteps = document.getElementById('kakaoIosSteps');
+        const openChromeBtn = document.getElementById('openChromeBtn');
+        const androidFallback = document.getElementById('kakaoAndroidFallback');
+        const message = document.getElementById('kakaoGuideMessage');
+
+        guide.hidden = false;
+        guide.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('kakao-guide-open');
+
+        if (androidSteps) androidSteps.hidden = ios;
+        if (iosSteps) iosSteps.hidden = !ios;
+        if (openChromeBtn) openChromeBtn.hidden = ios || !isAndroid();
+        if (androidFallback) androidFallback.hidden = ios || !isAndroid();
+        if (message) {
+          message.textContent = ios
+            ? 'Safari에서 열면 홈 화면에 앱으로 추가할 수 있어요.'
+            : '아래 버튼을 누르면 Chrome에서 설치할 수 있어요.';
+        }
+      }
+
+      function hideGuide() {
+        const guide = document.getElementById('kakaoGuide');
+        if (!guide) return;
+        guide.hidden = true;
+        guide.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('kakao-guide-open');
+      }
+
+      function openChrome(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        if (!isAndroid()) return;
+        const target = new URL(cleanAppUrl());
+        const scheme = target.protocol.replace(':', '') || 'https';
+        const path = `${target.host}${target.pathname}${target.search}${target.hash}`;
+        const fallback = encodeURIComponent(target.toString());
+        window.location.href = `intent://${path}#Intent;scheme=${scheme};package=com.android.chrome;S.browser_fallback_url=${fallback};end`;
+      }
+
+      async function copyLink(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const button = event.currentTarget;
+        const text = cleanAppUrl();
+        let copied = false;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        } catch (error) {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.setAttribute('readonly', '');
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          copied = document.execCommand('copy');
+          textarea.remove();
+        }
+
+        if (button) {
+          const original = button.textContent;
+          button.textContent = copied ? '복사 완료' : '주소를 길게 눌러 복사해 주세요';
+          window.setTimeout(() => { button.textContent = original; }, 1600);
+        }
+      }
+
+      function continueUse(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        hideGuide();
+      }
+
+      window.__TEA_SHOW_KAKAO_GUIDE__ = showGuide;
+      window.__TEA_HIDE_KAKAO_GUIDE__ = hideGuide;
+      window.__TEA_CLEAN_APP_URL__ = cleanAppUrl;
+      window.__TEA_KAKAO_INLINE_BOUND__ = true;
+
+      const openChromeBtn = document.getElementById('openChromeBtn');
+      const copyLinkBtn = document.getElementById('copyAppLinkBtn');
+      const continueBtn = document.getElementById('continueInKakaoBtn');
+
+      openChromeBtn?.addEventListener('click', openChrome, true);
+      copyLinkBtn?.addEventListener('click', copyLink, true);
+      continueBtn?.addEventListener('click', continueUse, true);
+
+      if (isKakaoContext) showGuide();
+    }());
+  </script>
+
+  <div id="splash" class="splash" aria-live="polite">
+    <img src="./img/logo.png" alt="TOTAL ENG" />
+    <strong>현장주소</strong>
+    <span>Loading...</span>
+  </div>
+
+  <div class="app">
+    <header class="app-header">
+      <div class="header-top">
+        <img src="./img/logo.png" class="logo" alt="TOTAL ENG" />
+        <div class="header-actions">
+          <button id="installBtn" class="icon-btn install-btn" type="button" hidden>설치</button>
+          <button id="settingsBtn" class="icon-btn settings-btn" type="button" aria-label="설정 열기">⚙️</button>
+        </div>
+      </div>
+      <h1>현장주소</h1>
+      <p>AS · 공사 현장 검색 / 주소복사 / 길찾기</p>
+      <div id="headerCount" class="header-count" aria-live="polite">불러오는 중...</div>
+    </header>
+
+    <nav class="app-sections" aria-label="앱 메뉴">
+      <button id="showSitesBtn" class="selected" type="button" aria-pressed="true">현장주소</button>
+      <button id="showContactsBtn" type="button" aria-pressed="false">공용 주소록</button>
+    </nav>
+    <div id="sitesView">
+    <section class="search-wrap" aria-label="현장 검색">
+      <div class="search-box">
+        <span aria-hidden="true">🔍</span>
+        <input id="searchInput" type="search" placeholder="현장명 또는 주소 검색" autocomplete="off" aria-label="현장명 또는 주소 검색" />
+        <button id="clearBtn" type="button" aria-label="검색어 지우기">✕</button>
+      </div>
+    </section>
+
+    <section id="favoriteTopBox" class="favorite-top-box" aria-label="즐겨찾기 현장"></section>
+
+    <nav class="tabs" aria-label="현장 분류">
+      <button class="tab active" data-type="all" type="button">전체</button>
+      <button class="tab" data-type="general" type="button">일반현장</button>
+      <button class="tab" data-type="coupang" type="button">쿠팡</button>
+      <button class="tab" data-type="favorite" type="button">즐겨찾기</button>
+      <button class="tab" data-type="recent" type="button">최근방문</button>
+    </nav>
+
+    <section class="summary-row">
+      <span id="countText">전체 0개</span>
+      <button id="refreshBtn" type="button">새로고침</button>
+    </section>
+
+    <main id="siteList" class="site-list"></main>
+    </div>
+    <section id="contactsView" class="contacts-view" hidden aria-label="공용 주소록">
+      <div class="search-box"><span aria-hidden="true">🔍</span><input id="contactSearch" type="search" aria-label="연락처 검색" placeholder="이름·현장·직책·업체·번호 검색" autocomplete="off" /></div>
+      <nav id="contactFilters" class="contact-filters" aria-label="연락처 분류">
+        <button type="button" data-category="전체" class="selected" aria-pressed="true">전체</button>
+        <button type="button" data-category="우리회사" aria-pressed="false">우리회사</button>
+        <button type="button" data-category="현장" aria-pressed="false">현장</button>
+        <button type="button" data-category="협력사" aria-pressed="false">협력사</button>
+      </nav>
+      <div class="contacts-toolbar"><span id="contactCount">전체 0명</span><button id="addContactBtn" type="button">+ 연락처 추가</button></div>
+      <div class="contacts-toolbar"><p id="contactStatus" role="status" aria-live="polite">주소록 연결 대기</p><button id="refreshContactsBtn" type="button">새로고침</button></div>
+      <div id="contactList"></div>
+    </section>
+
+    <footer class="app-footer">
+      <span id="versionText">V3.7.0</span>
+      <span id="updatedText">업데이트 확인 중</span>
+    </footer>
+  </div>
+
+  <div id="detailModal" class="detail-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="현장 상세정보">
+    <div class="detail-box">
+      <button id="closeDetailBtn" class="close-detail" type="button" aria-label="상세정보 닫기">✕</button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="settings-modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-sheet">
+      <div class="settings-head">
+        <div>
+          <span class="settings-label">앱 관리</span>
+          <h2 id="settingsTitle">설정</h2>
+        </div>
+        <button id="closeSettingsBtn" class="settings-close" type="button" aria-label="설정 닫기">✕</button>
+      </div>
+
+      <section class="settings-section">
+        <p id="syncStatus" role="status" aria-live="polite">최신 목록 확인 중…</p>
+        <button id="checkUpdateBtn" class="settings-primary-small" type="button">업데이트 확인</button>
+        <div class="settings-row">
+          <div>
+            <strong>다크모드</strong>
+            <p>화면을 어둡게 표시합니다.</p>
+          </div>
+          <label class="switch" aria-label="다크모드 설정">
+            <input id="darkModeToggle" type="checkbox" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <div class="settings-section-title">
+          <div>
+            <strong>현장주소 관리</strong>
+            <p>현장을 추가하거나 기존 정보를 수정할 수 있습니다.</p>
+          </div>
+          <button id="addSiteBtn" class="settings-primary-small" type="button">+ 주소 추가</button>
+        </div>
+
+        <div class="settings-warning settings-sync-notice">
+          추가하거나 수정한 현장은 <strong>Google Sheets에 즉시 저장</strong>되어 모든 직원에게 표시됩니다.
+        </div>
+
+        <div class="settings-search">
+          <span aria-hidden="true">🔍</span>
+          <input id="settingsSiteSearch" type="search" placeholder="현장명 또는 주소 검색" autocomplete="off" />
+        </div>
+        <div id="settingsSiteList" class="settings-site-list" aria-live="polite"></div>
+      </section>
+
+    </div>
+  </div>
+
+  <div id="siteEditorModal" class="site-editor-modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="siteEditorTitle">
+    <div class="site-editor-sheet">
+      <div class="settings-head">
+        <div>
+          <span class="settings-label">현장주소 관리</span>
+          <h2 id="siteEditorTitle">현장 추가</h2>
+        </div>
+        <button id="closeSiteEditorBtn" class="settings-close" type="button" aria-label="현장 편집 닫기">✕</button>
+      </div>
+
+      <form id="siteEditorForm" class="site-editor-form">
+        <input id="siteIdInput" type="hidden" />
+
+        <label>
+          <span>구분</span>
+          <select id="siteTypeInput" required>
+            <option value="general">일반현장</option>
+            <option value="coupang">쿠팡</option>
+          </select>
+        </label>
+
+        <label>
+          <span>현장명 *</span>
+          <input id="siteNameInput" type="text" maxlength="80" required placeholder="예: 안성다이소" />
+        </label>
+
+        <label>
+          <span>주소 *</span>
+          <textarea id="siteAddressInput" rows="3" maxlength="200" required placeholder="도로명 주소를 입력하세요"></textarea>
+        </label>
+
+        <label>
+          <span>기타 메모</span>
+          <input id="siteNoteInput" type="text" maxlength="120" placeholder="층수, 출입 안내 등" />
+        </label>
+
+        <div class="site-editor-actions">
+          <button id="deleteSiteBtn" class="site-delete-btn" type="button" hidden>현장 삭제</button>
+          <button id="siteSaveBtn" class="site-save-btn" type="submit">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="updateNoticeModal" class="update-notice-modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="updateNoticeTitle">
+    <div class="update-notice-card">
+      <span class="update-notice-label">NEW UPDATE</span>
+      <div class="update-notice-version">V3.7.0</div>
+      <h2 id="updateNoticeTitle">앱이 새로워졌어요</h2>
+      <p class="update-notice-intro">이번 업데이트에서 달라진 내용을 확인해 주세요.</p>
+      <ul class="update-notice-list">
+        <li><strong>공용 주소록</strong><span>우리회사·현장·협력사 연락처를 모든 직원이 함께 관리합니다.</span></li>
+        <li><strong>다양한 연락처 검색</strong><span>이름·직책·현장명·업체·전화번호·메모로 검색할 수 있습니다.</span></li>
+        <li><strong>전화·문자 바로가기</strong><span>전화 또는 문자 앱으로 바로 연결됩니다. 연락처 수정·삭제 전 정보는 이력에 보관합니다.</span></li>
+      </ul>
+      <button id="closeUpdateNoticeBtn" class="update-notice-confirm" type="button">확인하고 시작하기</button>
+      <p class="update-notice-once">이 안내는 이번 버전에서 한 번만 표시됩니다.</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./js/app.js?v=3.7.0" defer></script>
+  <script src="./js/contacts.js?v=3.7.0" defer></script>
+</body>
+</html>
