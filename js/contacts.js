@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const q = id => document.getElementById(id);
-  const categories = ['우리회사', '현장', '협력사', '코텍전자'];
+  const categories = ['우리회사', '현장', '코텍전자', '한스타', '예인시스템', '오르스마트테크', 'AJ네트웍스 현장 HI6 현대로봇 티칭'];
   const cacheKey = 'tea_shared_contacts_v1';
   let contacts = [], category = '전체', busy = false, loaded = false, revision = '';
   try { const c = JSON.parse(localStorage.getItem(cacheKey) || 'null'); if (Array.isArray(c?.contacts)) contacts = c.contacts; } catch (_) {}
@@ -22,17 +22,18 @@
   const form = q('contactForm');
   const field = name => form.elements.namedItem(name);
   const phoneDigits = value => String(value || '').replace(/\D/g, '');
+  const contactCategory = contact => contact.category === '협력사' ? contact.company : contact.category;
   function matches(contact, query) {
     const target = normalizeSearchText([contact.name, contact.company, contact.position, contact.siteName, contact.phone, contact.note, contact.category].join(' '));
     return String(query).trim().split(/\s+/).map(normalizeSearchText).filter(Boolean).every(word => target.includes(word));
   }
   function renderContacts() {
-    const filtered = contacts.filter(c => (category === '전체' || c.category === category) && matches(c, q('contactSearch').value))
+    const filtered = contacts.filter(c => (category === '전체' || contactCategory(c) === category) && matches(c, q('contactSearch').value))
       .sort((a, b) => String(a.name).localeCompare(String(b.name), 'ko'));
     q('contactCount').textContent = `${category} ${filtered.length}명`;
     q('contactList').innerHTML = filtered.map(c => {
       const digits = (String(c.phone || '').trim().startsWith('+') ? '+' : '') + phoneDigits(c.phone);
-      return `<article class="contact-card"><div class="contacts-toolbar"><span class="contact-badge">${escapeHtml(c.category)}</span><button type="button" data-edit="${escapeHtml(c.id)}" aria-label="${escapeHtml(c.name)} 수정">✎ 수정</button></div>
+      return `<article class="contact-card"><div class="contacts-toolbar"><span class="contact-badge">${escapeHtml(contactCategory(c))}</span><button type="button" data-edit="${escapeHtml(c.id)}" aria-label="${escapeHtml(c.name)} 수정">✎ 수정</button></div>
         <h3>${escapeHtml(c.name)} <small>${escapeHtml(c.position)}</small></h3>
         ${c.company ? `<p>업체 · ${escapeHtml(c.company)}</p>` : ''}${c.siteName ? `<p>현장 · ${escapeHtml(c.siteName)}</p>` : ''}
         <p>${escapeHtml(c.phone)}</p>${c.note ? `<p class="contact-note">${escapeHtml(c.note)}</p>` : ''}
@@ -70,7 +71,8 @@
     if (!loaded) { toast('주소록을 새로고침해 서버에 연결한 후 편집해 주세요.'); return; }
     form.reset();
     for (const key of ['id','updatedAt','name','phone','company','position','siteName','note']) field(key).value = contact?.[key] || '';
-    field('category').value = contact?.category || (category === '전체' ? '우리회사' : category);
+    const savedCategory = contact?.category === '협력사' ? contact.company : contact?.category;
+    field('category').value = savedCategory || (category === '전체' ? '우리회사' : category);
     q('contactEditorTitle').textContent = contact ? '연락처 수정' : '연락처 추가';
     q('deleteContactBtn').hidden = !contact;
     q('contactSiteOptions').innerHTML = sites.map(s => `<option value="${escapeHtml(s.name)}"></option>`).join('');

@@ -1,13 +1,13 @@
 const CACHE_PREFIX = `total-eng-address-${encodeURIComponent(self.registration.scope)}-`;
-const CACHE_NAME = `${CACHE_PREFIX}v3-7-2`;
+const CACHE_NAME = `${CACHE_PREFIX}v3-7-3`;
 const APP_SHELL = [
   './',
   './index.html',
-  './style.css?v=3.7.2',
-  './manifest.json?v=3.7.2',
+  './style.css?v=3.7.3',
+  './manifest.json?v=3.7.3',
   './robots.txt',
-  './js/app.js?v=3.7.2',
-  './js/contacts.js?v=3.7.2',
+  './js/app.js?v=3.7.3',
+  './js/contacts.js?v=3.7.3',
   './data/sites.json',
   './img/logo.png',
   './img/favicon-32.png',
