@@ -4,7 +4,7 @@
   "short_name": "현장주소",
   "description": "TOTAL ENG AS 및 공사 현장 주소 검색 앱",
   "lang": "ko-KR",
-  "start_url": "./?source=installed-app&v=3.7.3",
+  "start_url": "./?source=installed-app&v=3.7.4",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",

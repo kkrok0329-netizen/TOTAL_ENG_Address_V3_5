@@ -1,7 +1,15 @@
 'use strict';
 (() => {
   const q = id => document.getElementById(id);
-  const categories = ['우리회사', '현장', '코텍전자', '한스타', '예인시스템', '오르스마트테크', 'AJ네트웍스 현장 HI6 현대로봇 티칭'];
+  const categoryKey = value => String(value || '').normalize('NFKC').replace(/\s+/g, '').toLowerCase();
+  function categoryLabels() {
+    const labels = new Map(['우리회사', '현장'].map(label => [categoryKey(label), label]));
+    for (const contact of contacts) {
+      const label = String(contact.category === '협력사' ? contact.company : contact.category).trim().replace(/\s+/g, ' ');
+      if (label && !labels.has(categoryKey(label))) labels.set(categoryKey(label), label);
+    }
+    return [...labels.values()];
+  }
   const cacheKey = 'tea_shared_contacts_v1';
   let contacts = [], category = '전체', busy = false, loaded = false, revision = '';
   try { const c = JSON.parse(localStorage.getItem(cacheKey) || 'null'); if (Array.isArray(c?.contacts)) contacts = c.contacts; } catch (_) {}
@@ -10,7 +18,7 @@
   editor.setAttribute('aria-labelledby', 'contactEditorTitle');
   editor.innerHTML = `<form id="contactForm"><div class="contacts-toolbar"><h2 id="contactEditorTitle">연락처 추가</h2><button type="button" id="closeContactBtn" aria-label="연락처 편집 닫기">✕</button></div>
     <input name="id" type="hidden"><input name="updatedAt" type="hidden">
-    <label>분류<select name="category">${categories.map(c => `<option>${c}</option>`).join('')}</select></label>
+    <label>업체·분류 *<input name="category" required maxlength="120" list="contactCategoryOptions" placeholder="업체명 직접 입력 또는 기존 항목 선택"><datalist id="contactCategoryOptions"></datalist></label>
     <label>이름 *<input name="name" required maxlength="80" autocomplete="name"></label>
     <label>전화번호 *<input name="phone" type="tel" required maxlength="30" autocomplete="tel" placeholder="010-1234-5678"></label>
     <label>업체명<input name="company" maxlength="120" placeholder="TOTAL ENG / 협력업체명"></label>
@@ -22,13 +30,21 @@
   const form = q('contactForm');
   const field = name => form.elements.namedItem(name);
   const phoneDigits = value => String(value || '').replace(/\D/g, '');
-  const contactCategory = contact => contact.category === '협력사' ? contact.company : contact.category;
+  const contactCategory = contact => {
+    const label = contact.category === '협력사' ? contact.company : contact.category;
+    return categoryLabels().find(c => categoryKey(c) === categoryKey(label)) || label;
+  };
   function matches(contact, query) {
     const target = normalizeSearchText([contact.name, contact.company, contact.position, contact.siteName, contact.phone, contact.note, contact.category].join(' '));
     return String(query).trim().split(/\s+/).map(normalizeSearchText).filter(Boolean).every(word => target.includes(word));
   }
   function renderContacts() {
-    const filtered = contacts.filter(c => (category === '전체' || contactCategory(c) === category) && matches(c, q('contactSearch').value))
+    const labels = categoryLabels();
+    if (category !== '전체' && !labels.some(c => categoryKey(c) === categoryKey(category))) category = '전체';
+    const scrollLeft = q('contactFilters').scrollLeft;
+    q('contactFilters').innerHTML = ['전체', ...labels].map(c => `<button type="button" data-category="${escapeHtml(c)}" class="${categoryKey(c) === categoryKey(category) ? 'selected' : ''}" aria-pressed="${categoryKey(c) === categoryKey(category)}">${escapeHtml(c)}</button>`).join('');
+    q('contactFilters').scrollLeft = scrollLeft;
+    const filtered = contacts.filter(c => (category === '전체' || categoryKey(contactCategory(c)) === categoryKey(category)) && matches(c, q('contactSearch').value))
       .sort((a, b) => String(a.name).localeCompare(String(b.name), 'ko'));
     q('contactCount').textContent = `${category} ${filtered.length}명`;
     q('contactList').innerHTML = filtered.map(c => {
@@ -73,6 +89,7 @@
     for (const key of ['id','updatedAt','name','phone','company','position','siteName','note']) field(key).value = contact?.[key] || '';
     const savedCategory = contact?.category === '협력사' ? contact.company : contact?.category;
     field('category').value = savedCategory || (category === '전체' ? '우리회사' : category);
+    q('contactCategoryOptions').innerHTML = categoryLabels().map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
     q('contactEditorTitle').textContent = contact ? '연락처 수정' : '연락처 추가';
     q('deleteContactBtn').hidden = !contact;
     q('contactSiteOptions').innerHTML = sites.map(s => `<option value="${escapeHtml(s.name)}"></option>`).join('');
@@ -86,6 +103,8 @@
     event.preventDefault(); if (busy) return;
     const contact = Object.fromEntries(new FormData(form));
     for (const key in contact) contact[key] = String(contact[key]).trim();
+    contact.category = categoryLabels().find(c => categoryKey(c) === categoryKey(contact.category)) || contact.category.replace(/\s+/g, ' ');
+    if (!categoryKey(contact.category) || ['전체', '협력사'].includes(contact.category)) { toast('실제 업체명 또는 우리회사·현장 분류를 입력해 주세요.'); return; }
     const digits = phoneDigits(contact.phone);
     if (digits.length < 7 || digits.length > 15) { toast('전화번호를 확인해 주세요.'); return; }
     if (contacts.some(c => String(c.id) !== contact.id && phoneDigits(c.phone) === digits) && !confirm('같은 전화번호가 이미 있습니다. 그래도 저장할까요?')) return;
