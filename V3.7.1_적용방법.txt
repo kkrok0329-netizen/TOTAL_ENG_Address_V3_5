@@ -1,0 +1,15 @@
+V3.7.1 공용 주소록 연결 완료본
+
+새 Apps Script 주소에서 공용 연락처 70개와 현장 76개 정상 응답을 확인했습니다.
+이 패키지는 이미 배포한 새 주소로 연결되어 있습니다. Apps Script는 다시 수정하지 않아도 됩니다.
+
+1. TOTAL_ENG_Address_V3.7.1_GitHub.zip 압축 해제
+2. GitHub total-eng-address 저장소 맨 위에서 Add file → Upload files
+3. 압축 푼 폴더 안의 index.html, js, data, img 등 파일과 폴더 전체를 드래그
+   ZIP 파일 자체나 TOTAL_ENG_Address... 바깥 폴더를 올리지 마세요.
+4. Commit changes → GitHub Pages 배포 완료 기다리기
+5. 앱을 다시 열어 하단 V3.7.1 확인 → 공용 주소록 → 새로고침
+
+분류: 우리회사 18개 / 협력사 35개 / 현장 17개
+실제 휴대폰에서 전화·문자 앱 열기는 확인이 필요합니다.
+개인 연락처 데이터는 이 ZIP에 포함하지 않았습니다. 시트에서 불러옵니다.
