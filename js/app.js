@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'V3.7.1';
+const APP_VERSION = 'V3.7.2';
 const API_URL = 'https://script.google.com/macros/s/AKfycbwm6dZlQHZjZznU9D9dqm35xuCZjR3755HZIESeKXWJmb79dr497cYP0gLEQZvwcLXS/exec';
 const STORAGE_KEYS = {
   favorites: 'tea_favorites',
@@ -960,7 +960,7 @@ async function installApp() {
   }
 
   if (isIos()) {
-    window.alert('Safari의 공유 버튼을 누른 뒤 “홈 화면에 추가”를 선택하세요.');
+    document.getElementById('iosInstallGuide').showModal();
     return;
   }
 
@@ -1118,7 +1118,7 @@ function registerServiceWorker() {
 
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js?v=3.7.1', {
+      const registration = await navigator.serviceWorker.register('./service-worker.js?v=3.7.2', {
         scope: './',
         updateViaCache: 'none'
       });
@@ -1165,6 +1165,8 @@ function initialize() {
   const storedDarkMode = localStorage.getItem(STORAGE_KEYS.darkMode) === '1';
   applyDarkMode(storedDarkMode);
   initEvents();
+  const locationText = document.getElementById('appLocation');
+  if (locationText) locationText.textContent = window.location.origin + window.location.pathname;
   els.checkUpdateBtn?.addEventListener('click', checkAppUpdate);
   registerServiceWorker();
   updateInstallButton();

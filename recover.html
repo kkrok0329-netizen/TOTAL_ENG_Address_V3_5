@@ -1,0 +1,22 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>현장주소 연결 복구</title><style>body{font:17px/1.7 system-ui;background:#f3f6fa;color:#15243b;max-width:480px;padding:28px;margin:auto}button,a{display:block;background:#003d8e;color:white;padding:16px;border:0;border-radius:14px;font:inherit;text-align:center;text-decoration:none;margin:16px 0;width:100%;box-sizing:border-box}small{overflow-wrap:anywhere}#status{white-space:pre-wrap}</style></head><body><h1>앱 연결 복구</h1><p>이 앱 주소의 설치 캐시를 정리하고 최신 화면으로 이동합니다. 연락처·현장목록·즐겨찾기·설정은 삭제하지 않습니다.</p><small id="address"></small><button id="repair">캐시 정리하고 최신 앱 열기</button><p id="status" role="status"></p><p>복구 후에도 기존 홈 화면 아이콘이 다른 버전을 열면, 아이콘이 아래 주소의 앱인지 확인하고 이 페이지에서 새로 추가하세요.</p><a href="https://kkrok0329-netizen.github.io/TOTAL_ENG_Address_V3_5/?repair=372">현재 사용하는 앱 열기</a><p>아이폰: Safari → 공유 → 홈 화면에 추가. ‘웹 앱으로 열기’가 있으면 켜세요.</p><script>
+const scope = new URL('./', location.href).href;
+document.getElementById('address').textContent = scope;
+document.getElementById('repair').onclick = async function () {
+  this.disabled = true; const status = document.getElementById('status'); status.textContent = '설치 캐시 확인 중…';
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const r of registrations) if (r.scope === scope) await r.unregister();
+    }
+    if ('caches' in window) {
+      for (const name of await caches.keys()) {
+        if (!name.startsWith('total-eng-address-')) continue;
+        const cache = await caches.open(name);
+        for (const req of await cache.keys()) if (req.url.startsWith(scope)) await cache.delete(req);
+      }
+    }
+    status.textContent = '정리 완료. 최신 앱으로 이동합니다.';
+    location.replace(scope + '?recovered=' + Date.now());
+  } catch (e) {status.textContent = '자동 복구가 제한됐습니다. Safari 또는 Chrome에서 이 페이지를 열고 다시 시도해 주세요.'; this.disabled = false;}
+};
+</script></body></html>

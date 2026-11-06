@@ -1,12 +1,13 @@
-const CACHE_NAME = 'total-eng-address-v3-7-1';
+const CACHE_PREFIX = `total-eng-address-${encodeURIComponent(self.registration.scope)}-`;
+const CACHE_NAME = `${CACHE_PREFIX}v3-7-2`;
 const APP_SHELL = [
   './',
   './index.html',
-  './style.css?v=3.7.1',
-  './manifest.json?v=3.7.1',
+  './style.css?v=3.7.2',
+  './manifest.json?v=3.7.2',
   './robots.txt',
-  './js/app.js?v=3.7.1',
-  './js/contacts.js?v=3.7.1',
+  './js/app.js?v=3.7.2',
+  './js/contacts.js?v=3.7.2',
   './data/sites.json',
   './img/logo.png',
   './img/favicon-32.png',
@@ -28,7 +29,7 @@ self.addEventListener('activate', (event) => {
     Promise.all([
       caches.keys().then((keys) => Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
           .map((key) => caches.delete(key))
       )),
       self.clients.claim()
@@ -74,12 +75,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (url.pathname.endsWith('/recover.html')) {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
+
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request, './index.html'));
     return;
   }
 
-  const updateSensitiveFile = url.pathname.endsWith('/data/sites.json')
+  const updateSensitiveFile = url.pathname.endsWith('.html')
+    || url.pathname.endsWith('/data/sites.json')
     || url.pathname.endsWith('/js/app.js')
     || url.pathname.endsWith('/js/contacts.js')
     || url.pathname.endsWith('/style.css')

@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const q = id => document.getElementById(id);
-  const categories = ['우리회사', '현장', '협력사'];
+  const categories = ['우리회사', '현장', '협력사', '코텍전자'];
   const cacheKey = 'tea_shared_contacts_v1';
   let contacts = [], category = '전체', busy = false, loaded = false, revision = '';
   try { const c = JSON.parse(localStorage.getItem(cacheKey) || 'null'); if (Array.isArray(c?.contacts)) contacts = c.contacts; } catch (_) {}
@@ -62,7 +62,8 @@
       renderContacts();
     } catch (error) {
       loaded = false;
-      q('contactStatus').textContent = contacts.length ? '저장된 주소록 표시 중 · 연결 후 다시 시도' : '주소록 연결 전입니다. Apps Script 업데이트 후 새로고침해 주세요.';
+      const reason = error.name === 'AbortError' ? '서버 응답 시간 초과' : error instanceof TypeError ? '네트워크 연결 실패' : error instanceof SyntaxError ? '서버 응답 확인 필요 · 배포 접근 권한을 확인해 주세요' : error.message;
+      q('contactStatus').textContent = `${contacts.length ? '저장된 주소록 표시 중' : '주소록 연결 실패'} · ${reason} · 새로고침으로 재시도`;
     }
   }
   function openEditor(contact) {

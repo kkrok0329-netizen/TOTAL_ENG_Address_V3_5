@@ -13,12 +13,12 @@
 
   <title>TOTAL ENG 현장주소</title>
 
-  <link rel="manifest" href="./manifest.json?v=3.7.1" />
-  <link rel="stylesheet" href="./style.css?v=3.7.1" />
+  <link rel="manifest" href="./manifest.json?v=3.7.2" />
+  <link rel="stylesheet" href="./style.css?v=3.7.2" />
   <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon-32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="./img/icon-180.png" />
 </head>
-<body data-app-version="V3.7.1">
+<body data-app-version="V3.7.2">
   <div id="kakaoGuide" class="kakao-guide" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="kakaoGuideTitle">
     <div class="kakao-guide-card">
       <img class="kakao-guide-logo" src="./img/logo.png" alt="TOTAL ENG" />
@@ -231,6 +231,7 @@
         <button type="button" data-category="우리회사" aria-pressed="false">우리회사</button>
         <button type="button" data-category="현장" aria-pressed="false">현장</button>
         <button type="button" data-category="협력사" aria-pressed="false">협력사</button>
+        <button type="button" data-category="코텍전자" aria-pressed="false">코텍전자</button>
       </nav>
       <div class="contacts-toolbar"><span id="contactCount">전체 0명</span><button id="addContactBtn" type="button">+ 연락처 추가</button></div>
       <div class="contacts-toolbar"><p id="contactStatus" role="status" aria-live="polite">주소록 연결 대기</p><button id="refreshContactsBtn" type="button">새로고침</button></div>
@@ -238,7 +239,7 @@
     </section>
 
     <footer class="app-footer">
-      <span id="versionText">V3.7.1</span>
+      <span id="versionText">V3.7.2</span>
       <span id="updatedText">업데이트 확인 중</span>
     </footer>
   </div>
@@ -263,6 +264,8 @@
       <section class="settings-section">
         <p id="syncStatus" role="status" aria-live="polite">최신 목록 확인 중…</p>
         <button id="checkUpdateBtn" class="settings-primary-small" type="button">업데이트 확인</button>
+        <p>현재 앱 주소: <span id="appLocation" style="overflow-wrap:anywhere"></span></p>
+        <p><a href="./recover.html">업데이트가 멈췄나요? 앱 연결 복구</a></p>
         <div class="settings-row">
           <div>
             <strong>다크모드</strong>
@@ -345,11 +348,11 @@
   <div id="updateNoticeModal" class="update-notice-modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="updateNoticeTitle">
     <div class="update-notice-card">
       <span class="update-notice-label">NEW UPDATE</span>
-      <div class="update-notice-version">V3.7.1</div>
+      <div class="update-notice-version">V3.7.2</div>
       <h2 id="updateNoticeTitle">앱이 새로워졌어요</h2>
       <p class="update-notice-intro">이번 업데이트에서 달라진 내용을 확인해 주세요.</p>
       <ul class="update-notice-list">
-        <li><strong>공용 주소록</strong><span>우리회사·현장·협력사 연락처를 모든 직원이 함께 관리합니다.</span></li>
+        <li><strong>코텍전자 분류 추가</strong><span>코텍 연락처 26개를 코텍전자에서 따로 모아볼 수 있습니다.</span></li>
         <li><strong>다양한 연락처 검색</strong><span>이름·직책·현장명·업체·전화번호·메모로 검색할 수 있습니다.</span></li>
         <li><strong>전화·문자 바로가기</strong><span>전화 또는 문자 앱으로 바로 연결됩니다. 연락처 수정·삭제 전 정보는 이력에 보관합니다.</span></li>
       </ul>
@@ -358,8 +361,15 @@
     </div>
   </div>
 
+  <dialog id="iosInstallGuide" class="contact-editor" aria-labelledby="iosInstallTitle">
+    <h2 id="iosInstallTitle">아이폰 홈 화면에 추가</h2>
+    <p>카카오톡·네이버 앱 안에서 열었다면 먼저 링크를 복사하고 Safari에서 열어 주세요.</p>
+    <ol><li>Safari에서 이 앱 주소를 엽니다.</li><li>공유 버튼(네모 위로 화살표)을 누릅니다. 보이지 않으면 페이지 메뉴를 펼쳐 공유를 찾으세요.</li><li>공유 메뉴를 아래로 내려 <strong>홈 화면에 추가</strong>를 선택합니다. 없으면 <strong>동작 편집</strong>에서 추가하세요.</li><li><strong>웹 앱으로 열기</strong> 항목이 있으면 켜고 <strong>추가</strong>를 누릅니다.</li><li>홈 화면의 현장주소 아이콘으로 실행합니다.</li></ol>
+    <p>회사에서 관리하는 기기는 홈 화면 추가가 제한될 수 있습니다.</p>
+    <form method="dialog"><button class="settings-primary-small">확인</button></form>
+  </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./js/app.js?v=3.7.1" defer></script>
-  <script src="./js/contacts.js?v=3.7.1" defer></script>
+  <script src="./js/app.js?v=3.7.2" defer></script>
+  <script src="./js/contacts.js?v=3.7.2" defer></script>
 </body>
 </html>
